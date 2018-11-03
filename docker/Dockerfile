@@ -1,4 +1,4 @@
-FROM nvidia/cuda:9.2-cudnn7-devel
+FROM nvidia/cuda:8.0-cudnn6-devel
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Setup conda environment
-ENV PYTHON_VERSION=3.7
+ENV PYTHON_VERSION=3.6
 RUN curl -o ~/miniconda.sh -O https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
     chmod +x ~/miniconda.sh && ~/miniconda.sh -b -p /opt/conda && rm ~/miniconda.sh && \
     /opt/conda/bin/conda create -y --name py$PYTHON_VERSION \
@@ -35,7 +35,7 @@ RUN curl -o ~/miniconda.sh -O https://repo.continuum.io/miniconda/Miniconda3-lat
 ENV PATH /opt/conda/envs/py$PYTHON_VERSION/bin:$PATH
 
 # Install chainer under conda environment
-RUN pip install cupy-cuda92==6.0.0a1 chainer==6.0.0a1
+RUN pip install cupy==4.0.0b3 chainer==4.0.0b3
 
 # Clone chainer repository
 RUN git clone https://github.com/chainer/chainer.git /opt/chainer
