@@ -42,7 +42,7 @@ RUN git clone https://github.com/chainer/chainer.git /opt/chainer
 
 # Install some additional packages
 RUN pip install tensorflow tensorboard tensorboardX \
-    opencv-python tqdm
+    opencv-python tqdm pandas
 
 # Setup jupyter
 RUN jupyter notebook --generate-config && \
