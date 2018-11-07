@@ -52,6 +52,8 @@ def crop_image_label_pair(image_path, label_path, out_dir, crop_size):
 
 def gen_train_val_crops(root_dir, data_list, out_dir, crop_size):
 
+	os.makedirs(out_dir, exist_ok=True)
+
 	with open(data_list) as f:
 		scenes = f.readlines()
 
