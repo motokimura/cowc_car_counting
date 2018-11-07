@@ -12,7 +12,7 @@ from tqdm import tqdm
 Image.MAX_IMAGE_PIXELS = 1000000000
 
 
-def crop_image(image_path, label_path, out_dir, crop_size):
+def crop_image_label_pair(image_path, label_path, out_dir, crop_size):
 
 	image_basename, _ = os.path.splitext(os.path.basename(image_path))
 
@@ -50,7 +50,7 @@ def crop_image(image_path, label_path, out_dir, crop_size):
 			io.imsave(out_path, out_image)
 
 
-def gen_train_val_crop(root_dir, data_list, out_dir, crop_size):
+def gen_train_val_crops(root_dir, data_list, out_dir, crop_size):
 
 	with open(data_list) as f:
 		scenes = f.readlines()
@@ -63,7 +63,7 @@ def gen_train_val_crop(root_dir, data_list, out_dir, crop_size):
 		image_path = os.path.join(root_dir, "{}.png".format(scene))
 		label_path = os.path.join(root_dir, "{}_Annotated_Cars.png".format(scene))
 
-		crop_image(image_path, label_path, out_dir, crop_size)
+		crop_image_label_pair(image_path, label_path, out_dir, crop_size)
 
 	print("Done!")
 
@@ -83,4 +83,4 @@ if __name__ == "__main__":
 
 	args = parser.parse_args()
 
-	gen_train_val_crop(args.root_dir, args.data_list, args.out_dir, args.crop_size)
+	gen_train_val_crops(args.root_dir, args.data_list, args.out_dir, args.crop_size)
