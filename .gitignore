@@ -11,5 +11,6 @@ __pycache__
 /data/cowc_processed/*
 !/data/cowc_processed/test
 !/data/cowc_processed/train_val
+/data/cowc_processed/train_val/crop/*
 
 /models/*
