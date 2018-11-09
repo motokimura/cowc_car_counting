@@ -12,7 +12,7 @@ def compute_mean(dataset):
 
 	sum_rgb = np.zeros(shape=[3, ])
 	N = len(dataset)
-	for i, image in enumerate(dataset):
+	for i, (image, _) in enumerate(dataset):
 		sum_rgb += image.mean(axis=(1, 2), keepdims=False)
 		sys.stderr.write('{} / {}\r'.format(i, N))
 		sys.stderr.flush()

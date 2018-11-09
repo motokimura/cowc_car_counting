@@ -34,7 +34,7 @@ def _read_image_as_array(path, dtype):
 
 class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 	
-	def __init__(self, paths, root='.', dtype=np.float32):
+	def __init__(self, paths, root, dtype=np.float32, label_dtype=np.int32):
 		_check_pillow_availability()
 		if isinstance(paths, six.string_types):
 			with open(paths) as paths_file:
@@ -42,17 +42,21 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 		self._paths = paths
 		self._root = root
 		self._dtype = dtype
+		self._label_dtype = label_dtype
 
 	def __len__(self):
 		return len(self._paths)
 
 	def get_example(self, i):
 		path = os.path.join(self._root, self._paths[i])
-		image_label_pair = _read_image_as_array(path, self._dtype)
+		image_mask_pair = _read_image_as_array(path, self._dtype)
 
-		h, w, _ = image_label_pair.shape
+		h, w, _ = image_mask_pair.shape
 
-		image = image_label_pair[:, :w//2,  :]
-		label = image_label_pair[:,  w//2:, :]
+		image = image_mask_pair[:, :w//2,  :]
+		mask = image_mask_pair[:,  w//2:, 0]
 
-		return image.transpose(2, 0, 1)
+		label = (mask > 0).sum()
+		label = label.astype(self._label_dtype)
+
+		return image.transpose(2, 0, 1), label
