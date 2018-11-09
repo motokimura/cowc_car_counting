@@ -40,7 +40,7 @@ def get_crop_centers(label_car, label_neg, shuffle=True):
 
 def gen_train_area_mask(h, w, grid_size):
 
-	yi_max, xi_max = int(math.ceil(w / grid_size)), int(math.ceil(w / grid_size))
+	yi_max, xi_max = int(math.ceil(h / grid_size)), int(math.ceil(w / grid_size))
 
 	# 'train_area_mask' has True value at (x,y) assigned to train and False at (x,y) assigned to val. 
 	train_area_mask = np.ones(shape=[yi_max * grid_size, xi_max * grid_size], dtype=bool)
