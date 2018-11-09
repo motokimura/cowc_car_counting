@@ -11,10 +11,5 @@ __pycache__
 /data/cowc_processed/*
 !/data/cowc_processed/test
 !/data/cowc_processed/train_val
-/data/cowc_processed/train_val/crop/*
-!/data/cowc_processed/train_val/crop/train.txt
-!/data/cowc_processed/train_val/crop/val.txt
-!/data/cowc_processed/train_val/crop/train_val.txt
-!/data/cowc_processed/train_val/crop/mean.npy
 
 /models/*
