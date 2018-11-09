@@ -24,10 +24,10 @@ def dump_crop_filenames(out_txt, crop_filenames):
 
 def get_crop_centers(label_car, label_neg, shuffle=True):
 
-	car_ys, car_xs = np.where(label_car[:, :] > 0)
+	car_ys, car_xs = np.where(label_car > 0)
 	points_car = np.concatenate([car_ys[:, None], car_xs[:, None]], axis=1)
 
-	neg_ys, neg_xs = np.where(label_neg[:, :] > 0)
+	neg_ys, neg_xs = np.where(label_neg > 0)
 	points_neg = np.concatenate([neg_ys[:, None], neg_xs[:, None]], axis=1)
 
 	crop_centers = np.concatenate([points_car, points_neg], axis=0)
