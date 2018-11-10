@@ -22,7 +22,7 @@ def dump_crop_filenames(out_txt, crop_filenames):
 			f.write(crop_filename)
 
 
-def get_crop_centers(label_car, label_neg, shuffle=True):
+def get_crop_centers(label_car, label_neg, seed=0):
 
 	car_ys, car_xs = np.where(label_car > 0)
 	points_car = np.concatenate([car_ys[:, None], car_xs[:, None]], axis=1)
@@ -32,8 +32,8 @@ def get_crop_centers(label_car, label_neg, shuffle=True):
 
 	crop_centers = np.concatenate([points_car, points_neg], axis=0)
 
-	if shuffle:
-		np.random.shuffle(crop_centers)
+	np.random.seed(seed)
+	np.random.shuffle(crop_centers)
 
 	return crop_centers
 
@@ -75,11 +75,11 @@ def gen_train_area_mask(h, w, grid_size):
 	return train_area_mask
 
 
-def gen_crops_from_scene(image, label_car, label_neg, train_area_mask, out_basename, out_dir, crop_size):
+def gen_crops_from_scene(image, label_car, label_neg, train_area_mask, out_basename, out_dir, crop_size, seed):
 
 	h, w, _ = image.shape
 
-	crop_centers = get_crop_centers(label_car, label_neg)
+	crop_centers = get_crop_centers(label_car, label_neg, seed)
 
 	train_crop_footprint = np.zeros(shape=[h, w], dtype=bool)
 	val_crop_footprint = np.zeros(shape=[h, w], dtype=bool)
@@ -137,7 +137,7 @@ def gen_crops_from_scene(image, label_car, label_neg, train_area_mask, out_basen
 	return train_filenames, val_filenames, train_centers, val_centers
 
 
-def gen_train_val_crops(root_dir, data_list, out_dir, train_list, val_list, crop_size, grid_size):
+def gen_train_val_crops(root_dir, data_list, out_dir, train_list, val_list, crop_size, grid_size, seed):
 
 	os.makedirs(out_dir, exist_ok=True)
 
@@ -170,7 +170,7 @@ def gen_train_val_crops(root_dir, data_list, out_dir, train_list, val_list, crop
 
 		out_basename, _ = os.path.splitext(os.path.basename(image_path))
 
-		train_crops, val_crops, _, _ = gen_crops_from_scene(image, label_car, label_neg, train_area_mask, out_basename, out_dir, crop_size)
+		train_crops, val_crops, _, _ = gen_crops_from_scene(image, label_car, label_neg, train_area_mask, out_basename, out_dir, crop_size, seed)
 
 		train_filenames.extend(train_crops)
 		val_filenames.extend(val_crops)
@@ -190,16 +190,18 @@ if __name__ == "__main__":
 	parser.add_argument('--data_list', help='Path to a text listing up source cowc image and label data',
 						default='../../data/cowc_processed/train_val/train_val_scenes.txt')
 	parser.add_argument('--out_dir', help='Output directory',
-						default='../../data/cowc_processed/train_val/crop/data')
-	parser.add_argument('--train_list', help='Path to output text file listing up generated train crops',
-						default='../../data/cowc_processed/train_val/crop/train.txt')
-	parser.add_argument('--val_list', help='Path to output text file listing up generated val crops',
-						default='../../data/cowc_processed/train_val/crop/val.txt')
+						default='../../data/cowc_processed/train_val/crop')
 	parser.add_argument('--crop_size', help='Crop size in px', 
-						default=330)
+						default=224)
 	parser.add_argument('--grid_size', help='Train/val grid size in px', 
 						default=2048)
+	parser.add_argument('--seed', help='Random seed to suffle train/val crops', type=int, 
+						default=0)
 
 	args = parser.parse_args()
 
-	gen_train_val_crops(args.root_dir, args.data_list, args.out_dir, args.train_list, args.val_list, args.crop_size, args.grid_size)
+	crop_dst = os.path.join(args.out_dir, "data")
+	train_list = os.path.join(args.out_dir, "train.txt")
+	val_list = os.path.join(args.out_dir, "val.txt")
+
+	gen_train_val_crops(args.root_dir, args.data_list, crop_dst, train_list, val_list, args.crop_size, args.grid_size, args.seed)
