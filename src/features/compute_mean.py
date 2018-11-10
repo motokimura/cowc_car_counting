@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import argparse
-import sys
 import os
 import numpy as np
+
+import sys
+sys.path.append("../models")
 
 from dataset import CowcDataset_Counting
 
