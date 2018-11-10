@@ -25,6 +25,7 @@ RUN curl -o ~/miniconda.sh -O https://repo.continuum.io/miniconda/Miniconda3-lat
         ipython \
         mkl \
         matplotlib \
+        seaborn \
         scikit-learn \
         scikit-image \
         Pillow \
