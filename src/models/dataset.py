@@ -14,6 +14,8 @@ except ImportError as e:
 
 from chainer.dataset import dataset_mixin
 
+from transforms import random_color_distort
+
 
 def _check_pillow_availability():
 	if not available:
@@ -37,7 +39,7 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 	
 	def __init__(
 			self, paths, root, 
-			dtype=np.float32, label_dtype=np.int32, count_ignore_width=8, mean=None, random_flip=False):
+			dtype=np.float32, label_dtype=np.int32, count_ignore_width=8, mean=None, random_flip=False, distort=False, label_max=10*8):
 		_check_pillow_availability()
 		if isinstance(paths, six.string_types):
 			with open(paths) as paths_file:
@@ -54,6 +56,9 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 			self._mean = mean[np.newaxis, np.newaxis, :]
 
 		self._random_flip = random_flip
+		self._distort = distort
+
+		self._label_max = label_max
 
 	def __len__(self):
 		return len(self._paths)
@@ -67,8 +72,13 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 		image = image_mask_pair[:, :w//2,  :]
 		mask = image_mask_pair[:,  w//2:, 0]
 
-		# Normalize if mean array is given
+		if self._distort:
+			# Apply random color distort
+			image = random_color_distort(image)
+			image = np.asarray(image, dtype=self._dtype)
+
 		if self._normalize:
+			# Normalize if mean array is given
 			image = (image - self._mean) / 255.0
 
 		if self._random_flip:
@@ -91,5 +101,8 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 
 		label = (mask > 0).sum()
 		label = label.astype(self._label_dtype)
+
+		if label > self._label_max:
+			label = self._label_max
 
 		return image.transpose(2, 0, 1), label
