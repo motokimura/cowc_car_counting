@@ -28,7 +28,7 @@ def compute_class_weight(histogram, car_max):
 	histogram_new[car_max] = histogram[car_max:].sum()
 
 	class_weight = 1.0 / histogram_new
-	
+
 	class_weight /= class_weight.sum()
 
 	return class_weight
@@ -96,10 +96,10 @@ def train_model():
 	# Load the MNIST dataset
 	data_root = os.path.join(args.dataset, "data")
 
-	train = LabeledImageDataset(os.path.join(args.dataset, "train.txt"), data_root,
+	train = CowcDataset_Counting(os.path.join(args.dataset, "train.txt"), data_root,
 								mean=mean, random_flip=True, distort=True, label_max=args.car_max)
 	
-	test = LabeledImageDataset (os.path.join(args.dataset, "val.txt"), data_root, 
+	test = CowcDataset_Counting(os.path.join(args.dataset, "val.txt"), data_root, 
 								mean=mean, random_flip=False, distort=False, label_max=args.car_max)
 
 	train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
