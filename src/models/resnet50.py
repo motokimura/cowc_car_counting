@@ -95,7 +95,7 @@ class ResNet50(chainer.Chain):
 
 			self._class_weight = class_weight
 
-	def forward(self, x, t):
+	def __call__(self, x, t):
 		h = self.bn1(self.conv1(x))
 		h = F.max_pooling_2d(F.relu(h), 3, stride=2)
 		h = self.res2(h)
