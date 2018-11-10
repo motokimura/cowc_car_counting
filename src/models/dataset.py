@@ -105,4 +105,4 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 		if label > self._label_max:
 			label = self._label_max
 
-		return image.transpose(2, 0, 1).astype(self._dtype), label.astype(self._label_dtype)
+		return image.transpose(2, 0, 1).astype(self._dtype), label
