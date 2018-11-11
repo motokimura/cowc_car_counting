@@ -29,7 +29,8 @@ def compute_class_weight(histogram, car_max):
 	histogram_new[car_max] = histogram[car_max:].sum()
 
 	class_weight = 1.0 / histogram_new
-	class_weight *= histogram.sum()
+
+	class_weight /= class_weight.sum()
 
 	return class_weight
 
