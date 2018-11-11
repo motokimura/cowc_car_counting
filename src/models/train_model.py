@@ -40,7 +40,7 @@ def train_model():
 
 	parser.add_argument('--dataset', '-D', default='../../data/cowc_processed/train_val/crop',
 						help='Path to directory containing train.txt, val.txt, mean.npy and data directory')
-	parser.add_argument('--car-max', '-M', default=40,
+	parser.add_argument('--car-max', '-M', type=int, default=40,
 						help='Max car number to count')
 	parser.add_argument('--use-class-weight', '-w', action='store_true',
 						help='Use class weight when compute softmax cross entropy loss')
