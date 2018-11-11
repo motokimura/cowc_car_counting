@@ -52,7 +52,7 @@ def train_model():
 						help='GPU ID (negative value indicates CPU)')
 	parser.add_argument('--epoch', '-e', type=int, default=100,
 						help='Number of sweeps over the dataset to train')
-	parser.add_argument('--lr-shift', type=int, nargs='*', default=[],
+	parser.add_argument('--lr-shift', type=float, nargs='*', default=[],
 						help='Epochs to shift learning rate exponentially by 0.1')
 	parser.add_argument('--lr', type=float, default=0.01,
 						help='Initial leraning rate used in MomentumSGD optimizer')
