@@ -131,15 +131,17 @@ def gen_crops_from_scene(image, label_car, label_neg, train_area_mask, out_basen
 		out_image[:, :crop_size] = image_crop
 		out_image[:, crop_size:] = np.repeat(label_crop[:, :, None], 3, axis=2)
 		
-		out_path = os.path.join(out_dir, crop_filename)
-		io.imsave(out_path, out_image)
+		if out_dir is not None:
+			out_path = os.path.join(out_dir, crop_filename)
+			io.imsave(out_path, out_image)
 
 	return train_filenames, val_filenames, train_centers, val_centers
 
 
 def gen_train_val_crops(root_dir, data_list, out_dir, train_list, val_list, crop_size, grid_size, seed):
 
-	os.makedirs(out_dir, exist_ok=True)
+	if out_dir is not None:
+		os.makedirs(out_dir, exist_ok=True)
 
 	with open(data_list) as f:
 		scenes = f.readlines()
