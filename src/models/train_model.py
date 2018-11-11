@@ -48,6 +48,8 @@ def train_model():
 						help='Number of images in each mini-batch')
 	parser.add_argument('--test-batchsize', '-B', type=int, default=250,
 						help='Number of images in each test mini-batch')
+	parser.add_argument('--gpu', '-g', type=int, default=0,
+						help='GPU ID (negative value indicates CPU)')
 	parser.add_argument('--epoch', '-e', type=int, default=100,
 						help='Number of sweeps over the dataset to train')
 	parser.add_argument('--lr-shift', type=int, nargs='*', default=[1.0 / 3.0, 2.0 / 3.0],
