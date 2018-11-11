@@ -50,14 +50,12 @@ def train_model():
 						help='Number of images in each test mini-batch')
 	parser.add_argument('--epoch', '-e', type=int, default=100,
 						help='Number of sweeps over the dataset to train')
-	parser.add_argument('--frequency', '-f', type=int, default=1,
-						help='Frequency of taking a snapshot')
-	parser.add_argument('--epoch', '-e', type=int, default=100,
-						help='Number of sweeps over the dataset to train')
 	parser.add_argument('--lr-shift', type=int, nargs='*', default=[1.0 / 3.0, 2.0 / 3.0],
 						help='Epochs to shift learning rate exponentially by 0.1')
 	parser.add_argument('--lr', type=float, default=0.01,
 						help='Initial leraning rate used in MomentumSGD optimizer')
+	parser.add_argument('--frequency', '-f', type=int, default=1,
+						help='Frequency of taking a snapshot')
 	parser.add_argument('--out', '-o', default='logs',
 						help='Directory to output the result under "models" directory')
 	parser.add_argument('--resume', '-r', default='',
