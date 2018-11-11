@@ -65,7 +65,7 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 
 	def get_example(self, i):
 		path = os.path.join(self._root, self._paths[i])
-		image_mask_pair = _read_image_as_array(path, self._dtype)
+		image_mask_pair = _read_image_as_array(path, np.float64)
 
 		h, w, _ = image_mask_pair.shape
 
@@ -75,7 +75,7 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 		if self._distort:
 			# Apply random color distort
 			image = random_color_distort(image)
-			image = np.asarray(image, dtype=self._dtype)
+			image = np.asarray(image, dtype=np.float64)
 
 		if self._normalize:
 			# Normalize if mean array is given
@@ -90,7 +90,7 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 			# Vertical flip
 			if random.randint(0, 1):
 				image = image[::-1, :, :]
-				mask = mask[::-1, :]   
+				mask = mask[::-1, :]
 
 		# Remove car annotation outside the valid area
 		count_ignore_width = self._count_ignore_width
@@ -100,9 +100,13 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 		mask[:, -count_ignore_width:] = 0
 
 		label = (mask > 0).sum()
-		label = label.astype(self._label_dtype)
 
+		# Clipping based on given max value of label
 		if label > self._label_max:
 			label = self._label_max
 
-		return image.transpose(2, 0, 1).astype(self._dtype), label
+		# Type casting
+		image = image.astype(self._dtype) 
+		label = self._label_dtype(label)
+
+		return image.transpose(2, 0, 1), label

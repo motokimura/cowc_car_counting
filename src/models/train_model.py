@@ -8,6 +8,7 @@ import numpy as np
 import chainer
 import chainer.functions as F
 import chainer.links as L
+from chainer import cuda
 from chainer import training
 from chainer.training import extensions
 
@@ -41,8 +42,8 @@ def train_model():
 						help='Path to directory containing train.txt, val.txt, mean.npy and data directory')
 	parser.add_argument('--car-max', '-M', default=40,
 						help='Max car number to count')
-	parser.add_argument('--use-class-weight', '-w', action='store_false',
-						help='Use class weight when compute softmax cross entropy loss')
+	parser.add_argument('--no-class-weight', '-w', action='store_true',
+						help='Do not use class weight when compute softmax cross entropy loss')
 	parser.add_argument('--batchsize', '-b', type=int, default=32,
 						help='Number of images in each mini-batch')
 	parser.add_argument('--test-batchsize', '-B', type=int, default=250,
@@ -51,8 +52,12 @@ def train_model():
 						help='Number of sweeps over the dataset to train')
 	parser.add_argument('--frequency', '-f', type=int, default=1,
 						help='Frequency of taking a snapshot')
-	parser.add_argument('--gpu', '-g', type=int, default=0,
-						help='GPU ID (negative value indicates CPU)')
+	parser.add_argument('--epoch', '-e', type=int, default=100,
+						help='Number of sweeps over the dataset to train')
+	parser.add_argument('--lr-shift', type=int, nargs='*', default=[1.0 / 3.0, 2.0 / 3.0],
+						help='Epochs to shift learning rate exponentially by 0.1')
+	parser.add_argument('--lr', type=float, default=0.01,
+						help='Initial leraning rate used in MomentumSGD optimizer')
 	parser.add_argument('--out', '-o', default='logs',
 						help='Directory to output the result under "models" directory')
 	parser.add_argument('--resume', '-r', default='',
@@ -71,11 +76,13 @@ def train_model():
 	writer = SummaryWriter(log_dir=log_dir)
 
 	# Compute class_weight used in softmax cross entropy
-	if args.use_class_weight:
+	if args.no_class_weight:
+		class_weight = None
+	else:
 		histogram = np.load(os.path.join(args.dataset, "histogram.npy"))
 		class_weight = compute_class_weight(histogram, args.car_max)
-	else:
-		class_weight = None
+		if args.gpu >= 0:
+			class_weight = cuda.cupy.asarray(class_weight, dtype=cuda.cupy.float32)
 	
 	# Set up a neural network to train
 	# Classifier reports softmax cross entropy loss and accuracy at every
@@ -87,7 +94,7 @@ def train_model():
 		model.to_gpu()  # Copy the model to the GPU
 
 	# Setup an optimizer
-	optimizer = chainer.optimizers.MomentumSGD(lr=0.01, momentum=0.9)
+	optimizer = chainer.optimizers.MomentumSGD(lr=args.lr, momentum=0.9)
 	optimizer.setup(model)
 	
 	# Load mean image
@@ -128,6 +135,15 @@ def train_model():
 	# Write a log of evaluation statistics for each epoch
 	trainer.extend(extensions.LogReport())
 
+	# Decay learning rate at some epochs
+	if len(args.lr_shift) > 0:
+		lr_shift = [int(shift_point * args.epoch) for shift_point in args.lr_shift]
+		trainer.extend(extensions.ExponentialShift('lr', 0.1), 
+					   trigger=triggers.ManualScheduleTrigger(lr_shift, 'epoch'))
+
+	# Monitor learning rate at every iteration
+	trainer.extend(extensions.observe_lr(), trigger=(1, 'iteration'))
+
 	# Save two plot images to the result dir
 	if args.plot and extensions.PlotReport.available():
 		trainer.extend(
@@ -145,7 +161,7 @@ def train_model():
 	# either the updater or the evaluator.
 	trainer.extend(extensions.PrintReport(
 		['epoch', 'main/loss', 'validation/main/loss',
-		 'main/accuracy', 'validation/main/accuracy', 'elapsed_time']))
+		 'main/accuracy', 'validation/main/accuracy', 'lr', 'elapsed_time']))
 
 	# Print a progress bar to stdout
 	trainer.extend(extensions.ProgressBar())
@@ -153,7 +169,8 @@ def train_model():
 	# Write training log to TensorBoard log file
 	trainer.extend(TensorboardLogger(writer,
 		['main/loss', 'validation/main/loss',
-		 'main/accuracy', 'validation/main/accuracy']))
+		 'main/accuracy', 'validation/main/accuracy',
+		 'lr']))
 	
 	if args.resume:
 		# Resume from a snapshot
