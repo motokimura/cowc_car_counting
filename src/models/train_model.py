@@ -42,9 +42,9 @@ def train_model():
 						help='Path to directory containing train.txt, val.txt, mean.npy and data directory')
 	parser.add_argument('--car-max', '-M', default=40,
 						help='Max car number to count')
-	parser.add_argument('--no-class-weight', '-w', action='store_true',
-						help='Do not use class weight when compute softmax cross entropy loss')
-	parser.add_argument('--batchsize', '-b', type=int, default=32,
+	parser.add_argument('--use-class-weight', '-w', action='store_true',
+						help='Use class weight when compute softmax cross entropy loss')
+	parser.add_argument('--batchsize', '-b', type=int, default=64,
 						help='Number of images in each mini-batch')
 	parser.add_argument('--test-batchsize', '-B', type=int, default=250,
 						help='Number of images in each test mini-batch')
@@ -76,13 +76,13 @@ def train_model():
 	writer = SummaryWriter(log_dir=log_dir)
 
 	# Compute class_weight used in softmax cross entropy
-	if args.no_class_weight:
-		class_weight = None
-	else:
+	if args.use_class_weight:
 		histogram = np.load(os.path.join(args.dataset, "histogram.npy"))
 		class_weight = compute_class_weight(histogram, args.car_max)
 		if args.gpu >= 0:
 			class_weight = cuda.cupy.asarray(class_weight, dtype=cuda.cupy.float32)
+	else:
+		class_weight = None
 	
 	# Set up a neural network to train
 	# Classifier reports softmax cross entropy loss and accuracy at every
