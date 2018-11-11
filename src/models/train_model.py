@@ -10,7 +10,7 @@ import chainer.functions as F
 import chainer.links as L
 from chainer import cuda
 from chainer import training
-from chainer.training import extensions
+from chainer.training import extensions, triggers
 
 from resnet50 import ResNet50
 from dataset import CowcDataset_Counting
