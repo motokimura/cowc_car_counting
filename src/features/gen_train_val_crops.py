@@ -187,15 +187,15 @@ if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser()
 
-	parser.add_argument('--root_dir', help='Root directory for cowc ground_truth_sets dir',
+	parser.add_argument('--root-dir', help='Root directory for cowc ground_truth_sets dir',
 						default='../../data/cowc/datasets/ground_truth_sets')
-	parser.add_argument('--data_list', help='Path to a text listing up source cowc image and label data',
+	parser.add_argument('--data-list', help='Path to a text listing up source cowc image and label data',
 						default='../../data/cowc_processed/train_val/train_val_scenes.txt')
-	parser.add_argument('--out_dir', help='Output directory',
+	parser.add_argument('--out-dir', help='Output directory',
 						default='../../data/cowc_processed/train_val/crop')
-	parser.add_argument('--crop_size', help='Crop size in px', 
+	parser.add_argument('--crop-size', help='Crop size in px', type=int,
 						default=224)
-	parser.add_argument('--grid_size', help='Train/val grid size in px', 
+	parser.add_argument('--grid-size', help='Train/val grid size in px', type=int,
 						default=2048)
 	parser.add_argument('--seed', help='Random seed to suffle train/val crops', type=int, 
 						default=0)
