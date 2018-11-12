@@ -9,8 +9,9 @@ __pycache__
 !/data/cowc_cities
 !/data/cowc_processed
 /data/cowc_processed/*
-!/data/cowc_processed/test
-!/data/cowc_processed/train_val
-/data/cowc_processed/train_val/crop/*
+/data/cowc_processed/test/*
+!/data/cowc_processed/test/test_scenes.txt
+/data/cowc_processed/train_val/*
+!/data/cowc_processed/train_val/train_val_scenes.txt
 
 /models/*
