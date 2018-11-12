@@ -89,7 +89,7 @@ def train_model():
 	# Set up a neural network to train
 	# Classifier reports softmax cross entropy loss and accuracy at every
 	# iteration, which will be used by the PrintReport extension below.
-	model = ResNet50(args.insize, args.car_max + 1, class_weight)
+	model = ResNet50(args.car_max + 1, args.insize, class_weight)
 	if args.gpu >= 0:
 		# Make a specified GPU current
 		chainer.cuda.get_device_from_id(args.gpu).use()
