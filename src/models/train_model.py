@@ -40,19 +40,21 @@ def train_model():
 
 	parser.add_argument('--dataset', '-D', default='../../data/cowc_processed/train_val/crop',
 						help='Path to directory containing train.txt, val.txt, mean.npy and data directory')
-	parser.add_argument('--car-max', '-M', type=int, default=40,
+	parser.add_argument('--insize', '-i', default=128, type=int,
+						help='Input size to CNN')
+	parser.add_argument('--car-max', '-M', type=int, default=14,
 						help='Max car number to count')
 	parser.add_argument('--use-class-weight', '-w', action='store_true',
 						help='Use class weight when compute softmax cross entropy loss')
 	parser.add_argument('--batchsize', '-b', type=int, default=32,
 						help='Number of images in each mini-batch')
-	parser.add_argument('--test-batchsize', '-B', type=int, default=250,
+	parser.add_argument('--test-batchsize', '-B', type=int, default=256,
 						help='Number of images in each test mini-batch')
 	parser.add_argument('--gpu', '-g', type=int, default=0,
 						help='GPU ID (negative value indicates CPU)')
-	parser.add_argument('--epoch', '-e', type=int, default=100,
+	parser.add_argument('--epoch', '-e', type=int, default=50,
 						help='Number of sweeps over the dataset to train')
-	parser.add_argument('--lr-shift', type=float, nargs='*', default=[],
+	parser.add_argument('--lr-shift', type=float, nargs='*', default=[0.7,],
 						help='Epochs to shift learning rate exponentially by 0.1')
 	parser.add_argument('--lr', type=float, default=0.01,
 						help='Initial leraning rate used in MomentumSGD optimizer')
@@ -87,7 +89,7 @@ def train_model():
 	# Set up a neural network to train
 	# Classifier reports softmax cross entropy loss and accuracy at every
 	# iteration, which will be used by the PrintReport extension below.
-	model = ResNet50(args.car_max + 1, class_weight)
+	model = ResNet50(args.insize, args.car_max + 1, class_weight)
 	if args.gpu >= 0:
 		# Make a specified GPU current
 		chainer.cuda.get_device_from_id(args.gpu).use()

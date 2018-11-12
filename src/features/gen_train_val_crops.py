@@ -194,7 +194,7 @@ if __name__ == "__main__":
 	parser.add_argument('--out-dir', help='Output directory',
 						default='../../data/cowc_processed/train_val/crop')
 	parser.add_argument('--crop-size', help='Crop size in px', type=int,
-						default=224)
+						default=128)
 	parser.add_argument('--grid-size', help='Train/val grid size in px', type=int,
 						default=2048)
 	parser.add_argument('--seed', help='Random seed to suffle train/val crops', type=int, 

@@ -79,9 +79,7 @@ class Block(chainer.ChainList):
 
 class ResNet50(chainer.Chain):
 
-	insize = 224
-
-	def __init__(self, class_num, class_weight=None):
+	def __init__(self, class_num, insize, class_weight=None):
 		super(ResNet50, self).__init__()
 		with self.init_scope():
 			self.conv1 = L.Convolution2D(
@@ -93,6 +91,9 @@ class ResNet50(chainer.Chain):
 			self.res5 = Block(3, 1024, 512, 2048)
 			self.fc = L.Linear(2048, class_num)
 
+			assert (insize % 32 == 0), "'insize' should be divisible by 32."
+			self._insize = insize
+			
 			self._class_weight = class_weight
 
 	def __call__(self, x, t):
@@ -102,7 +103,7 @@ class ResNet50(chainer.Chain):
 		h = self.res3(h)
 		h = self.res4(h)
 		h = self.res5(h)
-		h = F.average_pooling_2d(h, 7, stride=1)
+		h = F.average_pooling_2d(h, self._insize//32, stride=1)
 		h = self.fc(h)
 
 		loss = F.softmax_cross_entropy(h, t, class_weight=self._class_weight)
