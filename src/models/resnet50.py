@@ -109,3 +109,8 @@ class ResNet50(chainer.Chain):
 		loss = F.softmax_cross_entropy(h, t, class_weight=self._class_weight)
 		chainer.report({'loss': loss, 'accuracy': F.accuracy(h, t)}, self)
 		return loss
+
+	@property
+	def insize(self):
+		return self._insize
+	
