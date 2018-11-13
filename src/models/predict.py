@@ -59,9 +59,9 @@ class CarCountingModel:
 		image_in = Variable(cuda.cupy.asarray(image_in, dtype=cuda.cupy.float32))
 
 		return image_in
-		
 
-	def __compute_cam(features, weights):
+
+	def __compute_cam(self, features, weights):
 
 		features = cuda.to_cpu(features)[0] # [2048=c, insize//32=h, insize//32=w], assuming input batchsize is 1
 		weights = cuda.to_cpu(weights)      # [class_num, 2048=c]
