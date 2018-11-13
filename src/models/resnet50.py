@@ -96,21 +96,26 @@ class ResNet50(chainer.Chain):
 			
 			self._class_weight = class_weight
 
-	def forward(self, x):
+	def forward(self, x, compute_cam=False):
 		h = self.bn1(self.conv1(x))
 		h = F.max_pooling_2d(F.relu(h), 3, stride=2)
 		h = self.res2(h)
 		h = self.res3(h)
 		h = self.res4(h)
 		h = self.res5(h)
+		cam_features = h.data
 		h = F.average_pooling_2d(h, self._insize//32, stride=1)
 		h = self.fc(h)
+
+		if compute_cam:
+			cam_weights = self.fc.W.data
+			return h, cam_features, cam_weights
 
 		return h
 
 	def __call__(self, x, t):
 		h = self.forward(x)
-		
+
 		loss = F.softmax_cross_entropy(h, t, class_weight=self._class_weight)
 		chainer.report({'loss': loss, 'accuracy': F.accuracy(h, t)}, self)
 		return loss
