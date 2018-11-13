@@ -39,7 +39,7 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 	
 	def __init__(
 			self, paths, root, 
-			dtype=np.float32, label_dtype=np.int32, mean=None, transpose_image=True,
+			dtype=np.float32, label_dtype=np.int32, mean=None, transpose_image=True, return_mask=False,
 			count_ignore_width=8, label_max=10*8, random_flip=False, distort=False):
 		_check_pillow_availability()
 		if isinstance(paths, six.string_types):
@@ -55,6 +55,7 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 			self._mean = mean[np.newaxis, np.newaxis, :]
 
 		self._transpose_image = transpose_image
+		self._return_mask = return_mask
 		self._count_ignore_width = count_ignore_width
 		self._label_max = label_max
 		self._random_flip = random_flip
@@ -113,4 +114,7 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 		if self._transpose_image:
 			image = image.transpose(2, 0, 1)
 
-		return image, label
+		if self._return_mask:
+			return image, label, mask
+		else:
+			return image, label
