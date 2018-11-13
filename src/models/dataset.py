@@ -39,7 +39,8 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 	
 	def __init__(
 			self, paths, root, 
-			dtype=np.float32, label_dtype=np.int32, count_ignore_width=8, mean=None, random_flip=False, distort=False, label_max=10*8):
+			dtype=np.float32, label_dtype=np.int32, mean=None, transpose_image=True,
+			count_ignore_width=8, label_max=10*8, random_flip=False, distort=False):
 		_check_pillow_availability()
 		if isinstance(paths, six.string_types):
 			with open(paths) as paths_file:
@@ -49,16 +50,15 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 		self._dtype = dtype
 		self._label_dtype = label_dtype
 
-		self._count_ignore_width = count_ignore_width
-
 		self._normalize = False if (mean is None) else True
 		if self._normalize:
 			self._mean = mean[np.newaxis, np.newaxis, :]
 
+		self._transpose_image = transpose_image
+		self._count_ignore_width = count_ignore_width
+		self._label_max = label_max
 		self._random_flip = random_flip
 		self._distort = distort
-
-		self._label_max = label_max
 
 	def __len__(self):
 		return len(self._paths)
@@ -109,4 +109,8 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 		image = image.astype(self._dtype) 
 		label = self._label_dtype(label)
 
-		return image.transpose(2, 0, 1), label
+		# Transpose image from [H, W, C] to [C, H, W]
+		if self._transpose_image:
+			image = image.transpose(2, 0, 1)
+
+		return image, label
