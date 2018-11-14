@@ -61,7 +61,7 @@ In case you don't want to use docker, you have to install additional dependencie
 #### 5.3 Class activation mapping
 
 See [this notebook](notebooks/visualization/show_cam_on_val_crops.ipynb) 
-to see class activation mapping on validation crops. 
+to see [class activation mapping](http://cnnlocalization.csail.mit.edu/) on validation crops. 
 
 Output examples:
 
