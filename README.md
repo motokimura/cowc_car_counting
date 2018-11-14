@@ -1,4 +1,4 @@
 # cowc_car_counting
-Project to train/evaluate convolutional neural networks to count cars from COWC aerial images
+This repository privides some python scripts and jupyter notebooks to train and evaluate convolutional neural networks which count cars from [COWC](https://gdo152.llnl.gov/cowc/) aerial images.
 
-*Comming soon...*
+*Details comming soon...*
