@@ -36,7 +36,7 @@ $ cd $PROJ_DIR/docker
 $ bash build.sh
 ```
 
-In case you don't want to use docker, you have to install additional dependencies described in `docker/Dockerfile`.
+In case you don't want to use docker, you have to install additional dependencies described in [Dockerfile](docker/Dockerfile).
 
 ### 3. Preprocess COWC dataset
 
