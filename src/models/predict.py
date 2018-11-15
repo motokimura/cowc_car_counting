@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import cv2
 import math
+from skimage import io, exposure
 
 import chainer
 import chainer.functions as F
