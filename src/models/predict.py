@@ -88,11 +88,7 @@ class CarCountingModel:
 				pred = np.argmax(score)
 
 				if car_mask is not None:
-					tile_mask = car_mask_pad[top:top+model_insize, left:left+model_insize].copy()
-					#tile_mask[:ignore_w, :] = 0
-					#tile_mask[:, :ignore_w] = 0
-					#tile_mask[-ignore_w:, :] = 0
-					#tile_mask[:, -ignore_w:] = 0
+					tile_mask = car_mask_pad[top:top+model_insize, left:left+model_insize]
 					
 					label_original = (tile_mask[ignore_w:-ignore_w, ignore_w:-ignore_w] > 0).sum()
 					
