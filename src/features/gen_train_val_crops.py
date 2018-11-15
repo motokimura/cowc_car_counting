@@ -7,7 +7,7 @@ import shutil
 import math
 import numpy as np
 from PIL import Image
-from skimage import io, exposure
+from skimage import io
 from tqdm import tqdm
 
 Image.MAX_IMAGE_PIXELS = 1000000000
