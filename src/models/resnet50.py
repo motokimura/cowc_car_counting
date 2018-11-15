@@ -92,8 +92,9 @@ class ResNet50(chainer.Chain):
 			self.fc = L.Linear(2048, class_num)
 
 			assert (insize % 32 == 0), "'insize' should be divisible by 32."
-			self._insize = insize
 			
+			self._class_num = class_num
+			self._insize = insize
 			self._class_weight = class_weight
 
 	def forward(self, x, compute_cam=False):
@@ -123,4 +124,9 @@ class ResNet50(chainer.Chain):
 	@property
 	def insize(self):
 		return self._insize
+
+	@property
+	def class_num(self):
+		return self._class_num
+	
 	
