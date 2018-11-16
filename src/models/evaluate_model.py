@@ -12,7 +12,7 @@ from PIL import Image
 Image.MAX_IMAGE_PIXELS = 1000000000
 
 
-def extract_label_pred_vectors(scene_info_list, use_original_label=True):
+def extract_label_pred_vectors(scene_info_list, use_original_label=False):
 
 	# Extract ground-truth and predicted value from count_results list
 	labels = np.empty(shape=[0,], dtype=int)
@@ -118,7 +118,7 @@ def evaluate_model(
 	data_root="../../data/cowc/datasets/ground_truth_sets", 
 	out_dir = ".",
 	count_ignore_width=8,
-	use_original_label=True):
+	use_original_label=False):
 	
 	with open(test_scene_list) as f:
 		test_scenes = f.readlines()
