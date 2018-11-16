@@ -49,15 +49,7 @@ class CarCountingModel:
 			return score
 
 
-	def count_on_mosaic(self, image_path, label_path=None, count_ignore_width=8):
-
-		# Load images anyway
-		mosaic_image = io.imread(image_path)
-		mosaic_image = mosaic_image[:, :, :3] # remove alpha channel
-
-		if label_path is not None:
-			mosaic_label = io.imread(label_path)
-			mosaic_label = mosaic_label[:, :, 3] # use alpha channel
+	def count_on_mosaic(self, mosaic_image, mosaic_label=None, count_ignore_width=8):
 
 		# Create padded mosaic_image and mosaic_label so that their size = n * grid_size + 2 * count_ignore_width
 		# s.t., grid_size = model_input_size - 2 * count_ignore_width
@@ -76,7 +68,7 @@ class CarCountingModel:
 		mosaic_image_pad = 127 * np.ones(shape=[h_pad, w_pad, 3], dtype=np.uint8)
 		mosaic_image_pad[ignore_w:ignore_w+h, ignore_w:ignore_w+w] = mosaic_image
 
-		if label_path is not None:
+		if mosaic_label is not None:
 			mosaic_label_pad = np.zeros(shape=[h_pad, w_pad], dtype=np.uint8)
 			mosaic_label_pad[ignore_w:ignore_w+h, ignore_w:ignore_w+w] = mosaic_label
 
@@ -96,7 +88,7 @@ class CarCountingModel:
 				score = self.count(tile_image, compute_cam=False)
 				pred = np.argmax(score)
 
-				if label_path is not None:
+				if mosaic_label is not None:
 					tile_label = mosaic_label_pad[top:top+model_insize, left:left+model_insize]
 
 					label_original = (tile_label[ignore_w:-ignore_w, ignore_w:-ignore_w] > 0).sum()
@@ -117,9 +109,9 @@ class CarCountingModel:
 						'right': left + grid_size
 					},
 					'cars': {
-						'prediction': pred,
-						'label': label,
-						'label_original': label_original
+						'counted': pred,
+						'labeled': label,
+						'labeled_original': label_original
 					}
 				}
 
