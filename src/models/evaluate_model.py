@@ -6,7 +6,6 @@ import numpy as np
 import cv2
 from skimage import io
 from sklearn.metrics import confusion_matrix
-import pickle
 
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = 1000000000
@@ -116,7 +115,6 @@ def evaluate_model(
 	model, 
 	test_scene_list="../../data/cowc_processed/test/test_scenes.txt", 
 	data_root="../../data/cowc/datasets/ground_truth_sets", 
-	out_dir = ".",
 	count_ignore_width=8,
 	use_original_label=False):
 	
@@ -157,15 +155,5 @@ def evaluate_model(
 	# Evaluate the model on all test scenes and save the result as a dictionary
 	labels, preds = extract_label_pred_vectors(scene_info_list, use_original_label)
 	eval_result = make_evaluation_result_dict(labels, preds)
-
-	# Save the results as pickle files if out_dir is specified
-	if out_dir is not None:
-		os.makedirs(out_dir, exist_ok=True)
-
-		with open(os.path.join(out_dir, "eval_result.pickle"), 'wb') as handle:
-			pickle.dump(eval_result, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-		with open(os.path.join(out_dir, "scene_info_list.pickle"), 'wb') as handle:
-			pickle.dump(scene_info_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 	return eval_result, scene_info_list

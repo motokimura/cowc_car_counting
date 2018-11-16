@@ -44,7 +44,9 @@ def visualize_count_results(
             rgb = rgb_list[cars_counted]
             
         overlay[top:bottom, left:right] = rgb
-        cv2.rectangle(overlay, (left, top), (right, bottom), line_rgb, thickness=line_thickness)
+
+        if line_thickness > 0:
+            cv2.rectangle(overlay, (left, top), (right, bottom), line_rgb, thickness=line_thickness)
     
     cv2.addWeighted(overlay, alpha, visualization_result, 1 - alpha, 0, visualization_result)
 
