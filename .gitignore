@@ -1,11 +1,8 @@
 .python-version
 __pycache__
-
 .ipynb_checkpoints
-
 .DS_Store
-
-*.pickle
+.vscode
 
 /data/*
 !/data/cowc_cities
@@ -17,3 +14,5 @@ __pycache__
 !/data/cowc_processed/train_val/train_val_scenes.txt
 
 /models/*
+
+*.pickle
