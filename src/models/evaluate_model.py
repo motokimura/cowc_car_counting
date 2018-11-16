@@ -129,7 +129,7 @@ def evaluate_model(
 		scene_name = scene_name.rstrip()
 
 		# Load test scene anyway..
-		print("Loading {} ... ({} / {} test scenes)".format(scene_name, idx + 1, len(test_scenes)))
+		print("Loading {} ... ({}/{})".format(scene_name, idx + 1, len(test_scenes)))
 
 		image_path = os.path.join(data_root, "{}.png".format(scene_name))
 		label_path = os.path.join(data_root, "{}_Annotated_Cars.png".format(scene_name))
