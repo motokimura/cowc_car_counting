@@ -22,7 +22,7 @@ def get_rgb_list(sns_palette):
 
 def visualize_count_results(
     count_results, background_image, car_max, 
-    cmap='Reds', line_rgb=[255, 0, 0], line_thickness=5, alpha=0.6, min_car_to_show=1):
+    cmap='Reds', line_rgb=[0, 0, 0], line_thickness=4, alpha=0.5, min_car_to_show=1):
 
     visualization_result = background_image.copy()
     overlay = background_image.copy()
@@ -39,10 +39,12 @@ def visualize_count_results(
         cars_counted = cars['counted']
 
         if cars_counted < min_car_to_show:
-            continue
-        
-        overlay[top:bottom, left:right] = rgb_list[cars_counted]
-        cv2.rectangle(overlay, (left, top), (right, bottom), line_rgb[::-1], thickness=line_thickness)
+            rgb = [0, 0, 0]
+        else:
+            rgb = rgb_list[cars_counted]
+            
+        overlay[top:bottom, left:right] = rgb
+        cv2.rectangle(overlay, (left, top), (right, bottom), line_rgb, thickness=line_thickness)
     
     cv2.addWeighted(overlay, alpha, visualization_result, 1 - alpha, 0, visualization_result)
 
