@@ -22,7 +22,7 @@ def get_rgb_list(sns_palette):
 
 def visualize_count_results(
     count_results, background_image, car_max, 
-    cmap='Reds', line_rgb=[0, 0, 0], line_thickness=4, alpha=0.5, min_car_to_show=1, background_rgb=[0, 0, 0], show_texts=False):
+    cmap='Reds', line_rgb=[0, 0, 0], line_thickness=4, alpha=0.5, min_car_to_show=1, background_rgb=[0, 0, 0]):
 
     visualization_result = background_image.copy()
     overlay = background_image.copy()
