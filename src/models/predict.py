@@ -72,10 +72,11 @@ class CarCountingModel:
 			mosaic_label_pad = np.zeros(shape=[h_pad, w_pad], dtype=np.uint8)
 			mosaic_label_pad[ignore_w:ignore_w+h, ignore_w:ignore_w+w] = mosaic_label
 
-
 		# Count cars in each tile on the grid
-		car_max = self.__model.class_num - 1
-		count_results = []
+		cars_counted = np.zeros(shape=[yi_max, xi_max], dtype=int)
+		if mosaic_label is not None:
+			cars_labeled = np.zeros(shape=[yi_max, xi_max], dtype=int)
+		
 		tile_idx = 0
 
 		for yi in range(yi_max):
@@ -87,35 +88,12 @@ class CarCountingModel:
 				tile_image = mosaic_image_pad[top:top+model_insize, left:left+model_insize]
 				score = self.count(tile_image, compute_cam=False)
 				pred = np.argmax(score)
+				cars_counted[yi, xi] = pred
 
 				if mosaic_label is not None:
 					tile_label = mosaic_label_pad[top:top+model_insize, left:left+model_insize]
-
-					label_original = (tile_label[ignore_w:-ignore_w, ignore_w:-ignore_w] > 0).sum()
-					
-					label = label_original
-					if label > car_max:
-						label = car_max
-
-				else:
-					label_original = -1000 	# value for N/A
-					label = -1000 			# value for N/A
-
-				count_result = {
-					'position': {
-						'top': top,
-						'left': left,
-						'bottom': top + grid_size,
-						'right': left + grid_size
-					},
-					'cars': {
-						'counted': pred,
-						'labeled': label,
-						'labeled_original': label_original
-					}
-				}
-
-				count_results.append(count_result)
+					label = (tile_label[ignore_w:-ignore_w, ignore_w:-ignore_w] > 0).sum()
+					cars_labeled[yi, xi] = label
 
 				tile_idx += 1
 				sys.stderr.write('{} / {}\r'.format(tile_idx, xi_max * yi_max))
@@ -123,7 +101,11 @@ class CarCountingModel:
 
 		sys.stderr.write('\n')
 
-		return count_results
+		if mosaic_label is not None:
+			return (cars_counted, cars_labeled), grid_size
+
+		else:
+			return (cars_counted, None), grid_size
 
 
 	def __preprocess_image(self, image):
