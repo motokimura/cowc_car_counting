@@ -91,7 +91,7 @@ def make_evaluation_result_dict(labels, preds, car_max):
 
 	eval_result = {}
 
-	eval_result{'car_max'} = car_max
+	eval_result['car_max'] = car_max
 
 	confusion = confusion_matrix(labels, preds)
 	eval_result['confusion'] = confusion
