@@ -1,5 +1,3 @@
-*This README is under construction...*
-
 # COWC Car Counting
 This repository privides some python scripts and jupyter notebooks to train and evaluate convolutional neural networks which count cars from [COWC](https://gdo152.llnl.gov/cowc/) aerial images.
 
@@ -59,9 +57,11 @@ $(docker) python gen_train_val_crops.py
 ```
 
 In `$PROJ_DIR/data/cowc_processed/train_val/crop/data`, 
-you should find many crops in which cropped image and label are placed side by side.
+you should find many crops in which image and label are placed side by side like shown below.
 If you are interested in how train/val crops are sampled, 
 please see [this notebook](notebooks/features/visualize_train_val_crop_distrib.ipynb).
+
+<img src="contents/crop_00.png" width=60%>
 
 Then, compute mean image over train crops. 
 This will be used to normalize crops before input them to the network.
@@ -93,6 +93,8 @@ $(docker) tensorboard --logdir /workspace/models
 
 Then, open `http://localhost:6006` from your browser.
 
+<img src="contents/tensorboard_00.png" width=70%>
+
 ### 5. Evaluate the network
 
 Evaluate ResNet50 with jupyter notebook.
@@ -110,7 +112,9 @@ Note that you may need to modify the path to pre-trained model defined in the no
 
 #### 5.1 Quantitative evaluation
 
-*Comming soon...*
+Open [this notebook](notebooks/models/evaluate_model.ipynb) 
+to see quantitative evaluation on the test scenes defined in 
+[this text file](data/cowc_processed/test/test_scenes.txt). 
 
 #### 5.2 Qualitative evaluation
 
