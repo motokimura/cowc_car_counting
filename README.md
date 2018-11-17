@@ -3,6 +3,8 @@
 # COWC Car Counting
 This repository privides some python scripts and jupyter notebooks to train and evaluate convolutional neural networks which count cars from [COWC](https://gdo152.llnl.gov/cowc/) aerial images.
 
+![](contents/example_00.png)
+
 ## Dependency
 
 * [NVIDIA Driver](https://www.nvidia.com/Download/index.aspx)
@@ -58,7 +60,6 @@ $(docker) python gen_train_val_crops.py
 
 In `$PROJ_DIR/data/cowc_processed/train_val/crop/data`, 
 you should find many crops in which cropped image and label are placed side by side.
-
 If you are interested in how train/val crops are sampled, 
 please see [this notebook](notebooks/features/visualize_train_val_crop_distrib.ipynb).
 
@@ -84,7 +85,8 @@ $(docker) python compute_mean.py
 
 #### 5.2 Qualitative evaluation
 
-*Comming soon...*
+Open [this notebook](notebooks/visualization/visualize_count_results.ipynb) 
+to see qualitative evaluation on a test scene. 
 
 Distribusion of the cars counted by the network in a test scene (Salt Lake City):
 
