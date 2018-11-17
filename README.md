@@ -40,7 +40,35 @@ In case you don't want to use docker, you have to install additional dependencie
 
 ### 3. Preprocess COWC dataset
 
-*Comming soon...*
+Generate crops from COWC train/val scenes defined in [this text file](data/cowc_processed/train_val/train_val_scenes.txt).
+
+Run docker container by following:
+
+```
+$ cd $PROJ_DIR/docker
+$ bash run.sh
+```
+
+Now you should be inside the docker container you ran. Generate train/val crops by following:
+
+```
+$(docker) cd /workspace/src/features
+$(docker) python gen_train_val_crops.py
+```
+
+In `$PROJ_DIR/data/cowc_processed/train_val/crop/data`, 
+you should find many crops in which cropped image and label are placed side by side.
+
+If you are interested in how train/val crops are sampled, 
+please see [this notebook](notebooks/features/visualize_train_val_crop_distrib.ipynb).
+
+Then, compute mean image over train crops. 
+This will be used to normalize crops before input them to the network.
+
+```
+$(docker) cd /workspace/src/features
+$(docker) python compute_mean.py
+```
 
 ### 4. Train ResNet-50
 
