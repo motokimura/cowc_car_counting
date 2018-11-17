@@ -11,22 +11,20 @@ from PIL import Image
 Image.MAX_IMAGE_PIXELS = 1000000000
 
 
-def extract_label_pred_vectors(scene_info_list, use_original_label=False):
+def extract_label_pred_vectors(scene_info_list, car_max):
 
-	# Extract ground-truth and predicted value from count_results list
+	# Extract ground-truth and predicted value from scene_info
 	labels = np.empty(shape=[0,], dtype=int)
 	preds = np.empty(shape=[0,], dtype=int)
 
 	for scene_info in scene_info_list:
 
-		count_results = scene_info['count_results']
-		for count_result in count_results:
+		cars_labeled = scene_info['cars_labeled'].copy()
+		cars_labeled[cars_labeled > car_max] = car_max
+		cars_counted = scene_info['cars_counted']
 
-			pred = count_result['cars']['counted']
-			label = count_result['cars']['labeled_original'] if use_original_label else count_result['cars']['labeled']
-
-			labels = np.append(labels, label)
-			preds = np.append(preds, pred)
+		labels = np.append(labels, cars_labeled.flatten())
+		preds = np.append(preds, cars_counted.flatten())
 
 	return labels, preds
 
@@ -89,9 +87,11 @@ def compute_proposal_accuracy(confusion):
 	return accuracy
 
 
-def make_evaluation_result_dict(labels, preds):
+def make_evaluation_result_dict(labels, preds, car_max):
 
 	eval_result = {}
+
+	eval_result{'car_max'} = car_max
 
 	confusion = confusion_matrix(labels, preds)
 	eval_result['confusion'] = confusion
@@ -116,7 +116,7 @@ def evaluate_model(
 	test_scene_list="../../data/cowc_processed/test/test_scenes.txt", 
 	data_root="../../data/cowc/datasets/ground_truth_sets", 
 	count_ignore_width=8,
-	use_original_label=False):
+	car_max=14):
 	
 	with open(test_scene_list) as f:
 		test_scenes = f.readlines()
@@ -139,21 +139,22 @@ def evaluate_model(
 		mosiac_label = mosiac_label[:, :, 3] # use alpha channel
 
 		# Count cars in each tile on the test scene
-		count_results = model.count_on_mosaic(mosaic_image, mosiac_label, count_ignore_width)
+		cars, grid_size = model.count_on_mosaic(mosaic_image, mosiac_label, count_ignore_width)
+		cars_counted, cars_labeled = cars
 
 		# Compute some evaluation metrics from car counring result and append those metrics to a list
 		scene_info = {}
 		scene_info['scene'] = scene_name
-		scene_info['count_results'] = count_results
-		scene_info['count_ignore_width'] = count_ignore_width
-		scene_info['use_original_label'] = use_original_label
+		scene_info['cars_counted'] = cars_counted
+		scene_info['cars_labeled'] = cars_labeled
+		scene_info['grid_size'] = grid_size
 
-		labels, preds = extract_label_pred_vectors([scene_info], use_original_label)
-		scene_info['eval'] = make_evaluation_result_dict(labels, preds)
+		labels, preds = extract_label_pred_vectors([scene_info], car_max)
+		scene_info['eval'] = make_evaluation_result_dict(labels, preds, car_max)
 		scene_info_list.append(scene_info)
 
 	# Evaluate the model on all test scenes and save the result as a dictionary
-	labels, preds = extract_label_pred_vectors(scene_info_list, use_original_label)
-	eval_result = make_evaluation_result_dict(labels, preds)
+	labels, preds = extract_label_pred_vectors(scene_info_list, car_max)
+	eval_result = make_evaluation_result_dict(labels, preds, car_max)
 
 	return eval_result, scene_info_list
