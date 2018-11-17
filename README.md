@@ -73,11 +73,40 @@ $(docker) python compute_mean.py
 
 ### 4. Train ResNet-50
 
-*Comming soon...*
+Train ResNet50 with generated crop images by following: 
+
+```
+$(docker) cd /workspace/src/models
+$(docker) python train_model.py
+```
+
+You can check training status and validation accuracy from TensorBoard:
+
+```
+# Open another terminal window outside the container and type:
+$ cd $PROJ_DIR/docker
+$ bash exec.sh
+
+# Now you should be inside the container already running. Start TensorBoard by following:
+$(docker) tensorboard --logdir /workspace/models
+```
+
+Then, open `http://localhost:6006` from your browser.
 
 ### 5. Evaluate the network
 
-*Comming soon...*
+Evaluate ResNet50 with jupyter notebook.
+
+Launch jupyter notebook by flollowing:
+
+```
+$(docker) cd /workspace/notebooks
+$(docker) jupyter notebook
+```
+
+Then, open `http://localhost:8888` from your browser.
+
+Note that you may need to modify the path to pre-trained model defined in the notebooks below.
 
 #### 5.1 Quantitative evaluation
 
