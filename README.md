@@ -58,6 +58,12 @@ In case you don't want to use docker, you have to install additional dependencie
 
 *Comming soon...*
 
+Distribusion of the cars counted by the network in a test scene (Salt Lake City):
+
+![](contents/count_result_00.png)
+
+![](contents/count_result_10.png)
+
 #### 5.3 Class activation mapping
 
 Open [this notebook](notebooks/visualization/show_cam_on_val_crops.ipynb) 
