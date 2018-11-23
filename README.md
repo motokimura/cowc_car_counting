@@ -71,9 +71,28 @@ $(docker) cd /workspace/src/features
 $(docker) python compute_mean.py
 ```
 
-### 4. Train ResNet-50
+### 4. Train ResNet50
+
+I reccomend you to use pretrained ResNet50 caffemodel to initialize model weights. 
+It makes training much faster and the model more accurate.
+
+Download `ResNet-50-model.caffemodel` from `OneDrive download` of [this page](https://github.com/KaimingHe/deep-residual-networks#models).
+Then, move this file under `$PROJ_DIR/models/caffemodels` by following:
+
+```
+$ mkdir -p $PROJ_DIR/models/caffemodels
+$ cd <directory in which ResNet-50-model.caffemodel is placed>
+$ cp ResNet-50-model.caffemodel $PROJ_DIR/models/caffemodels
+```
 
 Train ResNet50 with generated crop images by following: 
+
+```
+$(docker) cd /workspace/src/models
+$(docker) python train_model.py --caffemodel ../../models/caffemodels/ResNet-50-model.caffemodel
+```
+
+If you want to train from scratch:
 
 ```
 $(docker) cd /workspace/src/models

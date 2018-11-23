@@ -40,9 +40,9 @@ def train_model():
 
 	parser.add_argument('--dataset', '-D', default='../../data/cowc_processed/train_val/crop',
 						help='Path to directory containing train.txt, val.txt, mean.npy and data directory')
-	parser.add_argument('--insize', '-i', default=128, type=int,
+	parser.add_argument('--insize', '-i', default=96, type=int,
 						help='Input size to CNN')
-	parser.add_argument('--car-max', '-M', type=int, default=14,
+	parser.add_argument('--car-max', '-M', type=int, default=9,
 						help='Max car number to count')
 	parser.add_argument('--use-class-weight', '-w', action='store_true',
 						help='Use class weight when compute softmax cross entropy loss')
@@ -52,12 +52,14 @@ def train_model():
 						help='Number of images in each test mini-batch')
 	parser.add_argument('--gpu', '-g', type=int, default=0,
 						help='GPU ID (negative value indicates CPU)')
-	parser.add_argument('--epoch', '-e', type=int, default=50,
+	parser.add_argument('--epoch', '-e', type=int, default=80,
 						help='Number of sweeps over the dataset to train')
-	parser.add_argument('--lr-shift', type=float, nargs='*', default=[0.7,],
-						help='Epochs to shift learning rate exponentially by 0.1')
+	parser.add_argument('--lr-shift', type=float, nargs='*', default=[0.5, 0.75],
+						help='Points to shift learning rate exponentially by 0.1')
 	parser.add_argument('--lr', type=float, default=0.01,
 						help='Initial leraning rate used in MomentumSGD optimizer')
+	parser.add_argument('--caffemodel', '-c', default=None,
+						help='Path to ResNet50 caffemodel file to load weights. If None, train from scratch')
 	parser.add_argument('--frequency', '-f', type=int, default=1,
 						help='Frequency of taking a snapshot')
 	parser.add_argument('--out', '-o', default='logs',
@@ -89,7 +91,7 @@ def train_model():
 	# Set up a neural network to train
 	# Classifier reports softmax cross entropy loss and accuracy at every
 	# iteration, which will be used by the PrintReport extension below.
-	model = ResNet50(args.car_max + 1, args.insize, class_weight)
+	model = ResNet50(args.car_max + 1, args.insize, class_weight=class_weight, caffemodel_path=args.caffemodel)
 	if args.gpu >= 0:
 		# Make a specified GPU current
 		chainer.cuda.get_device_from_id(args.gpu).use()
@@ -103,13 +105,14 @@ def train_model():
 	mean = np.load(os.path.join(args.dataset, "mean.npy"))
 	
 	# Load the MNIST dataset
-	data_root = os.path.join(args.dataset, "data")
+	train_root = os.path.join(args.dataset, "train")
+	val_root   = os.path.join(args.dataset, "val")
 
-	train = CowcDataset_Counting(os.path.join(args.dataset, "train.txt"), data_root,
-								mean=mean, random_flip=True, distort=True, label_max=args.car_max)
+	train = CowcDataset_Counting(os.path.join(args.dataset, "train.txt"), train_root, args.insize, 
+								mean=mean, random_crop=True, random_flip=True, random_color_distort=True, label_max=args.car_max)
 	
-	test = CowcDataset_Counting(os.path.join(args.dataset, "val.txt"), data_root, 
-								mean=mean, random_flip=False, distort=False, label_max=args.car_max)
+	test = CowcDataset_Counting(os.path.join(args.dataset, "val.txt"), val_root, args.insize, 
+								mean=mean, random_crop=False, random_flip=False, random_color_distort=False, label_max=args.car_max)
 
 	train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
 	test_iter = chainer.iterators.SerialIterator(test, args.test_batchsize, repeat=False, shuffle=False)
