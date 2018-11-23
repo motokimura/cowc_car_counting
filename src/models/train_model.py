@@ -39,7 +39,7 @@ def train_model():
 	parser = argparse.ArgumentParser()
 
 	parser.add_argument('--dataset', '-D', default='../../data/cowc_processed/train_val/crop',
-						help='Path to directory containing train.txt, val.txt, mean.npy and data directory')
+						help='Path to directory containing train.txt, val.txt, mean.npy and train/val directories')
 	parser.add_argument('--insize', '-i', default=96, type=int,
 						help='Input size to CNN')
 	parser.add_argument('--car-max', '-M', type=int, default=9,
