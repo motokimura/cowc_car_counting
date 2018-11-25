@@ -27,16 +27,18 @@ if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(description='Compute images mean array')
 	
-	parser.add_argument('--data_list', help='Path to training image-label list file',
+	parser.add_argument('--data-list', help='Path to training image-label list file',
 						default='../../data/cowc_processed/train_val/crop/train.txt')
 	parser.add_argument('--root', help='Root directory path of image files', 
-						default='../../data/cowc_processed/train_val/crop/data')
+						default='../../data/cowc_processed/train_val/crop/train')
 	parser.add_argument('--output', help='path to output distriba array',
 						default='../../data/cowc_processed/train_val/crop/histogram.npy')
+	parser.add_argument('--crop-size', type=int, help='Crop size in px',
+						default=96)
 
 	args = parser.parse_args()
 
-	dataset = CowcDataset_Counting(args.data_list, args.root)
+	dataset = CowcDataset_Counting(args.data_list, args.root, args.crop_size)
 	hist = compute_histogram(dataset)
 
 	print("Computed histogram:")

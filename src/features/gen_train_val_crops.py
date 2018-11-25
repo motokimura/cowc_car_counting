@@ -75,7 +75,7 @@ def gen_train_area_mask(h, w, grid_size):
 	return train_area_mask
 
 
-def gen_crops_from_scene(image, label_car, label_neg, train_area_mask, out_basename, out_dir, crop_size, seed):
+def gen_crops_from_scene(image, label_car, label_neg, train_area_mask, out_basename, train_dst, val_dst, tcrop_size, vcrop_size, seed):
 
 	h, w, _ = image.shape
 
@@ -94,6 +94,9 @@ def gen_crops_from_scene(image, label_car, label_neg, train_area_mask, out_basen
 	
 		y, x = crop_center
 		
+		is_train = train_area_mask[y, x]
+		crop_size = tcrop_size if is_train else vcrop_size
+
 		top = y - crop_size // 2
 		left = x - crop_size // 2
 		bottom = top + crop_size
@@ -103,8 +106,6 @@ def gen_crops_from_scene(image, label_car, label_neg, train_area_mask, out_basen
 			continue
 
 		crop_filename = "{}_{}_{}.png".format(out_basename, y, x)
-		
-		is_train = train_area_mask[y, x]
 		
 		if is_train:
 			# Check if the crop has overlap with val crops already extracted.
@@ -131,28 +132,38 @@ def gen_crops_from_scene(image, label_car, label_neg, train_area_mask, out_basen
 		out_image[:, :crop_size] = image_crop
 		out_image[:, crop_size:] = np.repeat(label_crop[:, :, None], 3, axis=2)
 		
-		if out_dir is not None:
-			out_path = os.path.join(out_dir, crop_filename)
+		dst_dir = train_dst if is_train else val_dst
+
+		if dst_dir is not None:
+			out_path = os.path.join(dst_dir, crop_filename)
 			io.imsave(out_path, out_image)
 
 	return train_filenames, val_filenames, train_centers, val_centers
 
 
-def gen_train_val_crops(root_dir, data_list, out_dir, train_list, val_list, crop_size, grid_size, seed):
+def gen_train_val_crops(root_dir, scene_list, out_dir, tcrop_size, vcrop_size, grid_size, seed):
 
-	if out_dir is not None:
-		os.makedirs(out_dir, exist_ok=True)
+	train_dst  = None if (out_dir is None) else os.path.join(out_dir, "train")
+	val_dst    = None if (out_dir is None) else os.path.join(out_dir, "val")
+	train_list = None if (out_dir is None) else os.path.join(out_dir, "train.txt")
+	val_list   = None if (out_dir is None) else os.path.join(out_dir, "val.txt")
 
-	with open(data_list) as f:
+	if train_dst is not None:
+		os.makedirs(train_dst, exist_ok=True)
+	
+	if val_dst is not None:
+		os.makedirs(val_dst, exist_ok=True)
+
+	with open(scene_list) as f:
 		scenes = f.readlines()
 
 	train_filenames = []
 	val_filenames = []
 
-	for scene in scenes:
+	for idx, scene in enumerate(scenes):
 		scene = scene.rstrip()
 
-		print("Loading {} ...".format(scene))
+		print("Loading {} ... ({}/{})".format(scene, idx + 1, len(scenes)))
 
 		image_path = os.path.join(root_dir, "{}.png".format(scene))
 		car_path = os.path.join(root_dir, "{}_Annotated_Cars.png".format(scene))
@@ -172,13 +183,16 @@ def gen_train_val_crops(root_dir, data_list, out_dir, train_list, val_list, crop
 
 		out_basename, _ = os.path.splitext(os.path.basename(image_path))
 
-		train_crops, val_crops, _, _ = gen_crops_from_scene(image, label_car, label_neg, train_area_mask, out_basename, out_dir, crop_size, seed)
+		train_crops, val_crops, _, _ = gen_crops_from_scene(image, label_car, label_neg, train_area_mask, out_basename, train_dst, val_dst, tcrop_size, vcrop_size, seed)
 
 		train_filenames.extend(train_crops)
 		val_filenames.extend(val_crops)
-
-	dump_crop_filenames(train_list, train_filenames)
-	dump_crop_filenames(val_list, val_filenames)
+	
+	if train_list is not None:
+		dump_crop_filenames(train_list, train_filenames)
+	
+	if val_list is not None:
+		dump_crop_filenames(val_list, val_filenames)
 
 	print("Done!")
 
@@ -189,12 +203,14 @@ if __name__ == "__main__":
 
 	parser.add_argument('--root-dir', help='Root directory for cowc ground_truth_sets dir',
 						default='../../data/cowc/datasets/ground_truth_sets')
-	parser.add_argument('--data-list', help='Path to a text listing up source cowc image and label data',
+	parser.add_argument('--scene-list', help='Path to a text listing up source cowc image and label data',
 						default='../../data/cowc_processed/train_val/train_val_scenes.txt')
-	parser.add_argument('--out-dir', help='Output directory',
+	parser.add_argument('--out-dir', '-o', help='Output directory',
 						default='../../data/cowc_processed/train_val/crop')
-	parser.add_argument('--crop-size', help='Crop size in px', type=int,
-						default=128)
+	parser.add_argument('--tcrop-size', '-t', help='Size of train crops in px', type=int,
+						default=112)
+	parser.add_argument('--vcrop-size', '-v', help='Size of val crops in px', type=int,
+						default=96)
 	parser.add_argument('--grid-size', help='Train/val grid size in px', type=int,
 						default=2048)
 	parser.add_argument('--seed', help='Random seed to suffle train/val crops', type=int, 
@@ -202,8 +218,4 @@ if __name__ == "__main__":
 
 	args = parser.parse_args()
 
-	crop_dst = os.path.join(args.out_dir, "data")
-	train_list = os.path.join(args.out_dir, "train.txt")
-	val_list = os.path.join(args.out_dir, "val.txt")
-
-	gen_train_val_crops(args.root_dir, args.data_list, crop_dst, train_list, val_list, args.crop_size, args.grid_size, args.seed)
+	gen_train_val_crops(args.root_dir, args.scene_list, args.out_dir, args.tcrop_size, args.vcrop_size, args.grid_size, args.seed)

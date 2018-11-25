@@ -70,16 +70,24 @@ class Block(chainer.ChainList):
 		self.add_link(BottleNeckA(in_size, ch, out_size, stride))
 		for i in range(layer - 1):
 			self.add_link(BottleNeckB(out_size, ch))
+		
+		self._layer = layer
 
 	def __call__(self, x):
 		for f in self.children():
 			x = f(x)
 		return x
+	
+	@property
+	def layer(self):
+		return self._layer
 
 
 class ResNet50(chainer.Chain):
 
-	def __init__(self, class_num, insize, class_weight=None):
+	def __init__(self, class_num, insize, class_weight=None, caffemodel_path=None):
+		assert (insize % 32 == 0), "'insize' should be divisible by 32."
+		
 		super(ResNet50, self).__init__()
 		with self.init_scope():
 			self.conv1 = L.Convolution2D(
@@ -90,12 +98,14 @@ class ResNet50(chainer.Chain):
 			self.res4 = Block(6, 512, 256, 1024)
 			self.res5 = Block(3, 1024, 512, 2048)
 			self.fc = L.Linear(2048, class_num)
+		
+		if caffemodel_path is not None:
+			# Load pre-trained weights from caffemodel
+			self._load_pretrained_weights(caffemodel_path)
 
-			assert (insize % 32 == 0), "'insize' should be divisible by 32."
-			
-			self._class_num = class_num
-			self._insize = insize
-			self._class_weight = class_weight
+		self._class_num = class_num
+		self._insize = insize
+		self._class_weight = class_weight
 
 	def forward(self, x, compute_cam=False):
 		h = self.bn1(self.conv1(x))
@@ -129,4 +139,51 @@ class ResNet50(chainer.Chain):
 	def class_num(self):
 		return self._class_num
 	
+
+	# Functions to load weights from pre-trained ResNet50 caffemodel
+	# Reference: https://github.com/chainer/chainer/blob/master/chainer/links/model/vision/resnet.py
+	def _load_weights_conv_bn(self, src, dst_conv, dst_bn, bname, cname):
+		src_conv = getattr(src, 'res{}_branch{}'.format(bname, cname))
+		src_bn = getattr(src, 'bn{}_branch{}'.format(bname, cname))
+		src_scale = getattr(src, 'scale{}_branch{}'.format(bname, cname))
+		dst_conv.W.data[:] = src_conv.W.data
+		dst_bn.avg_mean[:] = src_bn.avg_mean
+		dst_bn.avg_var[:] = src_bn.avg_var
+		dst_bn.gamma.data[:] = src_scale.W.data
+		dst_bn.beta.data[:] = src_scale.bias.b.data
+
+	def _load_weights_bottleneckA(self, dst, src, name):
+		self._load_weights_conv_bn(src, dst.conv1, dst.bn1, name, '2a')
+		self._load_weights_conv_bn(src, dst.conv2, dst.bn2, name, '2b')
+		self._load_weights_conv_bn(src, dst.conv3, dst.bn3, name, '2c')
+		self._load_weights_conv_bn(src, dst.conv4, dst.bn4, name, '1')
 	
+	def _load_weights_bottleneckB(self, dst, src, name):
+		self._load_weights_conv_bn(src, dst.conv1, dst.bn1, name, '2a')
+		self._load_weights_conv_bn(src, dst.conv2, dst.bn2, name, '2b')
+		self._load_weights_conv_bn(src, dst.conv3, dst.bn3, name, '2c')
+
+	def _load_weights_block(self, dst, src, names):
+		for i, (layers, name) in enumerate(zip(dst.children(), names)):
+			if i ==0:
+				self._load_weights_bottleneckA(layers, src, name)
+			else:
+				self._load_weights_bottleneckB(layers, src, name)
+
+	def _load_pretrained_weights(self, caffemodel_path):
+		# As CaffeFunction uses shortcut symbols,
+        # CaffeFunction is imported here.
+		from chainer.links.caffe.caffe_function import CaffeFunction
+		src = CaffeFunction(caffemodel_path)
+
+		self.conv1.W.data[:] = src.conv1.W.data
+		self.conv1.b.data[:] = src.conv1.b.data
+		self.bn1.avg_mean[:] = src.bn_conv1.avg_mean
+		self.bn1.avg_var[:] = src.bn_conv1.avg_var
+		self.bn1.gamma.data[:] = src.scale_conv1.W.data
+		self.bn1.beta.data[:] = src.scale_conv1.bias.b.data
+
+		self._load_weights_block(self.res2, src, ['2a', '2b', '2c'])
+		self._load_weights_block(self.res3, src, ['3a', '3b', '3c', '3d'])
+		self._load_weights_block(self.res4, src, ['4a', '4b', '4c', '4d', '4e', '4f'])
+		self._load_weights_block(self.res5, src, ['5a', '5b', '5c'])

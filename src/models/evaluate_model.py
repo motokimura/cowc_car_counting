@@ -32,6 +32,9 @@ def extract_label_pred_vectors(scene_info_list, car_max):
 def compute_mean_absolute_error(labels, preds):
 
 	N = labels.shape[0]
+	if N == 0:
+		return None
+
 	absolute_errors = np.abs(preds - labels)
 	mean_absolute_error = absolute_errors.sum() / N
 
@@ -41,6 +44,9 @@ def compute_mean_absolute_error(labels, preds):
 def compute_root_mean_squared_error(labels, preds):
 
 	N = labels.shape[0]
+	if N == 0:
+		return None
+
 	squared_errors = (preds - labels) ** 2.0
 	mean_squared_error = squared_errors.sum() / N
 	root_mean_squared_error = np.sqrt(mean_squared_error)
@@ -68,8 +74,11 @@ def compute_accuracy_within_tolerance(confusion, tolerance=0):
 	# Count correctly classified tiles from confusion matrix based on the mask
 	correctly_classified = confusion[mask].sum()
 	
-	total = confusion.sum()
-	accuracy = correctly_classified / total
+	N = confusion.sum()
+	if N == 0:
+		return None
+
+	accuracy = correctly_classified / N
 
 	return accuracy
 
@@ -103,7 +112,24 @@ def make_evaluation_result_dict(labels, preds, car_max):
 	eval_result['metrics']['accuracy_1'] = compute_accuracy_within_tolerance(confusion, tolerance=1)
 	eval_result['metrics']['accuracy_2'] = compute_accuracy_within_tolerance(confusion, tolerance=2)
 	eval_result['metrics']['proposal_accuracy'] = compute_proposal_accuracy(confusion)
-	
+
+	eval_result['stats'] = {}
+	for car_num in range(car_max + 1):
+		mask = (labels == car_num)
+		N = int(mask.sum())
+
+		labels_masked = labels[mask]
+		preds_masked = preds[mask]
+		confusion = confusion_matrix(labels_masked, preds_masked)
+
+		eval_result['stats'][car_num] = {}
+		eval_result['stats'][car_num]['mean'] = None if (N == 0) else preds_masked.mean()
+		eval_result['stats'][car_num]['mae'] = compute_mean_absolute_error(labels_masked, preds_masked)
+		eval_result['stats'][car_num]['rmse'] = compute_root_mean_squared_error(labels_masked, preds_masked)
+		eval_result['stats'][car_num]['accuracy'] = compute_accuracy_within_tolerance(confusion, tolerance=0)
+		eval_result['stats'][car_num]['accuracy_1'] = compute_accuracy_within_tolerance(confusion, tolerance=1)
+		eval_result['stats'][car_num]['accuracy_2'] = compute_accuracy_within_tolerance(confusion, tolerance=2)
+
 	eval_result['cars'] = {}
 	eval_result['cars']['counted'] = preds.sum()
 	eval_result['cars']['labeled'] = labels.sum()

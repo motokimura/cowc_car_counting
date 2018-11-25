@@ -14,7 +14,7 @@ except ImportError as e:
 
 from chainer.dataset import dataset_mixin
 
-from transforms import random_color_distort
+from transforms import random_color_distort as color_distort
 
 
 def _check_pillow_availability():
@@ -38,15 +38,16 @@ def _read_image_as_array(path, dtype):
 class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 	
 	def __init__(
-			self, paths, root, 
+			self, paths, root, crop_size,
 			dtype=np.float32, label_dtype=np.int32, mean=None, transpose_image=True, return_mask=False,
-			count_ignore_width=8, label_max=10*8, random_flip=False, distort=False):
+			count_ignore_width=8, label_max=10*8, random_crop=False, random_flip=False, random_color_distort=False):
 		_check_pillow_availability()
 		if isinstance(paths, six.string_types):
 			with open(paths) as paths_file:
 				paths = [path.rstrip() for path in paths_file]
 		self._paths = paths
 		self._root = root
+		self._crop_size = crop_size
 		self._dtype = dtype
 		self._label_dtype = label_dtype
 
@@ -58,8 +59,9 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 		self._return_mask = return_mask
 		self._count_ignore_width = count_ignore_width
 		self._label_max = label_max
+		self._random_crop = random_crop
 		self._random_flip = random_flip
-		self._distort = distort
+		self._random_color_distort = random_color_distort
 
 	def __len__(self):
 		return len(self._paths)
@@ -68,19 +70,28 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 		path = os.path.join(self._root, self._paths[i])
 		image_mask_pair = _read_image_as_array(path, np.float64)
 
-		h, w, _ = image_mask_pair.shape
+		_, W, _ = image_mask_pair.shape
 
-		image = image_mask_pair[:, :w//2,  :]
-		mask = image_mask_pair[:,  w//2:, 0]
+		image = image_mask_pair[:, :W//2,  :]
+		mask = image_mask_pair[:,  W//2:, 0]
 
-		if self._distort:
-			# Apply random color distort
-			image = random_color_distort(image)
-			image = np.asarray(image, dtype=np.float64)
+		# Crop image and mask
+		h, w, _ = image.shape
 
-		if self._normalize:
-			# Normalize if mean array is given
-			image = (image - self._mean) / 255.0
+		if self._random_crop:
+			# Random crop
+			top  = random.randint(0, h - self._crop_size)
+			left = random.randint(0, w - self._crop_size)
+		else:
+			# Center crop
+			top  = (h - self._crop_size) // 2
+			left = (w - self._crop_size) // 2
+		
+		bottom = top + self._crop_size
+		right = left + self._crop_size
+
+		image = image[top:bottom, left:right]
+		mask = mask[top:bottom, left:right]
 
 		if self._random_flip:
 			# Horizontal flip
@@ -92,15 +103,19 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 			if random.randint(0, 1):
 				image = image[::-1, :, :]
 				mask = mask[::-1, :]
+		
+		if self._random_color_distort:
+			# Apply random color distort
+			image = color_distort(image)
+			image = np.asarray(image, dtype=np.float64)
+		
+		if self._normalize:
+			# Normalize if mean array is given
+			image = (image - self._mean) / 255.0
 
 		# Remove car annotation outside the valid area
-		count_ignore_width = self._count_ignore_width
-		mask[:count_ignore_width, :] = 0
-		mask[:, :count_ignore_width] = 0
-		mask[-count_ignore_width:, :] = 0
-		mask[:, -count_ignore_width:] = 0
-
-		label = (mask > 0).sum()
+		ignore = self._count_ignore_width
+		label = (mask[ignore:-ignore, ignore:-ignore] > 0).sum()
 
 		# Clipping based on given max value of label
 		if label > self._label_max:
@@ -110,7 +125,7 @@ class CowcDataset_Counting(dataset_mixin.DatasetMixin):
 		image = image.astype(self._dtype) 
 		label = self._label_dtype(label)
 
-		# Transpose image from [H, W, C] to [C, H, W]
+		# Transpose image from [h, w, c] to [c, h, w]
 		if self._transpose_image:
 			image = image.transpose(2, 0, 1)
 
