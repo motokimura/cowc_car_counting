@@ -146,6 +146,8 @@ Distribusion of the cars counted by the network in a test scene (Salt Lake City)
 
 ![](contents/count_result_10.png)
 
+![](contents/count_result_20.png)
+
 #### 5.3 Class activation mapping
 
 Open [this notebook](notebooks/visualization/show_cam_on_val_crops.ipynb) 
@@ -153,9 +155,10 @@ to see [class activation mapping](https://github.com/metalbubble/CAM) on validat
 
 Output examples:
 
-![](contents/cam_02.png)
-![](contents/cam_01.png)
 ![](contents/cam_00.png)
+![](contents/cam_01.png)
+![](contents/cam_02.png)
+![](contents/cam_03.png)
 
 ## License
 
